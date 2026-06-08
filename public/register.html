@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #764ba2;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background:#764ba2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+        .message.error {
+            background: #fee;
+            color: #c33;
+            display: block;
+        }
+
+        .message.success {
+            background: #efe;
+            color: #3c3;
+            display: block;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Регистрация</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="fio">ФИО *</label>
+                <input type="text" id="fio" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="login">Логин *</label>
+                <input type="text" id="login" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Телефон *</label>
+                <input type="tel" id="phone" placeholder="+7XXXXXXXXXX" required>
+            </div>
+            
+            <div class="row">
+                <div class="form-group">
+                    <label for="password">Пароль *</label>
+                    <input type="password" id="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Подтверждение *</label>
+                    <input type="password" id="confirm_password" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="form-group">
+                    <label for="role_id">Роль *</label>
+                    <select id="role_id" required>
+                        <option value="">Выберите роль</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date_of_birth">Дата рождения</label>
+                    <input type="date" id="date_of_birth">
+                </div>
+            </div>
+            
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+        <div id="message" class="message"></div>
+        <div class="login-link">
+            Уже есть аккаунт? <a href="/login">Войти</a>
+        </div>
+    </div>
+
+    <script>
+        async function loadRoles() {
+            try {
+                const response = await fetch('/api/roles');
+                const roles = await response.json();
+                const select = document.getElementById('role_id');
+                
+                roles.forEach(role => {
+                    const option = document.createElement('option');
+                    option.value = role.id;
+                    option.textContent = role.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки ролей:', error);
+            }
+        }
+        
+        loadRoles();
+        
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const login = document.getElementById('login').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const fio = document.getElementById('fio').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const role_id = document.getElementById('role_id').value;
+            const date_of_birth = document.getElementById('date_of_birth').value;
+            const messageDiv = document.getElementById('message');
+            
+            if (password !== confirmPassword) {
+                messageDiv.textContent = 'Пароли не совпадают';
+                messageDiv.className = 'message error';
+                return;
+            }
+            
+            if (password.length < 6) {
+                messageDiv.textContent = 'Пароль должен содержать минимум 6 символов';
+                messageDiv.className = 'message error';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        login, 
+                        password, 
+                        fio, 
+                        email, 
+                        phone, 
+                        role_id: parseInt(role_id),
+                        date_of_birth: date_of_birth || null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    messageDiv.textContent = data.message;
+                    messageDiv.className = 'message success';
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    messageDiv.textContent = data.error;
+                    messageDiv.className = 'message error';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Ошибка соединения';
+                messageDiv.className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>
