@@ -5,11 +5,10 @@ const path = require('path');
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 app.post('/api/register', async (req, res) => {
-  const { login, password, fio, email, phone, role_id, date_of_birth } = req.body;
+  const { login, password, fio, email, phone, date_of_birth } = req.body;
   
   try {
     const checkUser = await db.query(
@@ -18,20 +17,17 @@ app.post('/api/register', async (req, res) => {
     );
     
     if (checkUser.rows.length > 0) {
-      return res.status(400).json({ error: 'Пользователь с таким логином или email уже существует' });
+      return res.status(400).json({ error: 'Пользователь уже существует' });
     }
     
     const result = await db.query(
       `INSERT INTO User_a (login, password, fio, email, phone, role_id, date_of_birth) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
-       RETURNING id, login, fio, email, phone, role_id, date_of_birth`,
-      [login, password, fio, email, phone, role_id, date_of_birth || null]
+       VALUES ($1, $2, $3, $4, $5, 22, $6) 
+       RETURNING id, login, fio, email, phone, date_of_birth`,
+      [login, password, fio, email, phone, date_of_birth || null]
     );
     
-    res.status(201).json({ 
-      message: 'Регистрация успешна', 
-      user: result.rows[0] 
-    });
+    res.status(201).json({ message: 'Регистрация успешна' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка сервера' });
@@ -57,10 +53,7 @@ app.post('/api/login', async (req, res) => {
     const user = result.rows[0];
     delete user.password;
     
-    res.json({ 
-      message: 'Вход успешен', 
-      user: user
-    });
+    res.json({ message: 'Вход успешен', user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка сервера' });
@@ -85,6 +78,14 @@ app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'register.html'));
 });
 
+app.get('/profile', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+});
+
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
 app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+  console.log('Server running on port 3000');
 });

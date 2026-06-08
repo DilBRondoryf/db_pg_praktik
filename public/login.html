@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #764ba2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -56,10 +56,15 @@
             transition: border-color 0.3s;
         }
 
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
         button {
             width: 100%;
             padding: 12px;
-            background:#764ba2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 5px;
@@ -67,6 +72,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
         }
 
         .message {
@@ -126,6 +135,11 @@
     </div>
 
     <script>
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            window.location.href = '/profile';
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -145,11 +159,11 @@
                 const data = await response.json();
                 
                 if (response.ok) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
                     messageDiv.textContent = data.message;
                     messageDiv.className = 'message success';
                     setTimeout(() => {
-                        alert('Добро пожаловать, ' + data.user.fio + '!');
-                        document.getElementById('loginForm').reset();
+                        window.location.href = '/profile';
                     }, 1000);
                 } else {
                     messageDiv.textContent = data.error;
