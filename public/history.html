@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История заявок</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .nav a.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #333;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #555;
+            font-size: 24px;
+        }
+
+        .filter-bar {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar input, .filter-bar select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .filter-bar input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .history-list {
+            margin-top: 20px;
+            min-height: 400px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .history-item:hover {
+            transform: translateX(5px);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .transport-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-waiting { background: #ffc107; color: #333; }
+        .status-progress { background: #17a2b8; color: white; }
+        .status-completed { background: #28a745; color: white; }
+
+        .history-details {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .history-details p {
+            margin: 5px 0;
+        }
+
+        /* Рейтинг */
+        .rating-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .stars {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .star {
+            font-size: 24px;
+            cursor: pointer;
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+        .star.active {
+            color: #ffc107;
+        }
+
+        .star:hover {
+            color: #ffc107;
+        }
+
+        .review-text {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 10px;
+        }
+
+        .rating-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .rating-btn:hover {
+            background: #5a67d8;
+        }
+
+        .current-rating {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 14px;
+            color: #ffc107;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .empty-history {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">Транспортная система</div>
+            <div class="nav">
+                <a href="/profile">Личный кабинет</a>
+                <a href="/applications">Мои заявки</a>
+                <a href="/history" class="active">История</a>
+            </div>
+            <button class="logout-btn" onclick="logout()">Выйти</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h1>📜 История заявок</h1>
+            
+            <div class="filter-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по транспорту...">
+                <select id="statusFilter">
+                    <option value="">Все статусы</option>
+                    <option value="Ожидает подтверждения">⏳ Ожидает подтверждения</option>
+                    <option value="Выполняется">🚀 Выполняется</option>
+                    <option value="Завершена">✅ Завершена</option>
+                </select>
+                <select id="ratingFilter">
+                    <option value="">Все оценки</option>
+                    <option value="rated">С оценкой</option>
+                    <option value="not_rated">Без оценки</option>
+                    <option value="5">⭐ 5 звезд</option>
+                    <option value="4">⭐ 4 звезды</option>
+                    <option value="3">⭐ 3 звезды</option>
+                    <option value="2">⭐ 2 звезды</option>
+                    <option value="1">⭐ 1 звезда</option>
+                </select>
+            </div>
+
+            <div id="historyList" class="history-list">
+                <div class="empty-history">Загрузка...</div>
+            </div>
+
+            <div id="pagination" class="pagination" style="display: none;"></div>
+            <div id="paginationInfo" class="pagination-info"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let allApplications = [];
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let ratingsCache = {};
+
+        // Проверка авторизации
+        const user = localStorage.getItem('user');
+        if (!user) {
+            window.location.href = '/login';
+        }
+        currentUser = JSON.parse(user);
+
+        // Получение CSS класса для статуса
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Ожидает подтверждения': return 'status-waiting';
+                case 'Выполняется': return 'status-progress';
+                case 'Завершена': return 'status-completed';
+                default: return 'status-waiting';
+            }
+        }
+
+        // Получение иконки для статуса
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'Ожидает подтверждения': return '⏳';
+                case 'Выполняется': return '🚀';
+                case 'Завершена': return '✅';
+                default: return '📋';
+            }
+        }
+
+        // Загрузка оценки заявки
+        async function loadRating(applicationId) {
+            if (ratingsCache[applicationId]) return ratingsCache[applicationId];
+            
+            try {
+                const response = await fetch(`/api/applications/${applicationId}/rating`);
+                const rating = await response.json();
+                ratingsCache[applicationId] = rating;
+                return rating;
+            } catch (error) {
+                console.error('Ошибка загрузки оценки:', error);
+                return null;
+            }
+        }
+
+        // Сохранение оценки
+        async function saveRating(applicationId, rating, review) {
+            try {
+                const response = await fetch(`/api/applications/${applicationId}/rating`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rating, review })
+                });
+                
+                if (response.ok) {
+                    ratingsCache[applicationId] = { rating, review };
+                    alert('Оценка сохранена! Спасибо за отзыв!');
+                    displayHistoryWithFilters();
+                } else {
+                    alert('Ошибка сохранения оценки');
+                }
+            } catch (error) {
+                alert('Ошибка соединения');
+            }
+        }
+
+        // Отображение звезд
+        function renderStars(applicationId, currentRating, onRatingChange) {
+            let starsHtml = '<div class="stars">';
+            for (let i = 1; i <= 5; i++) {
+                starsHtml += `<span class="star ${currentRating >= i ? 'active' : ''}" data-rating="${i}">★</span>`;
+            }
+            starsHtml += '</div>';
+            return starsHtml;
+        }
+
+        // Загрузка заявок
+        async function loadApplications() {
+            try {
+                const response = await fetch(`/api/applications/${currentUser.id}`);
+                allApplications = await response.json();
+                currentPage = 1;
+                displayHistoryWithFilters();
+            } catch (error) {
+                console.error('Ошибка загрузки заявок:', error);
+                document.getElementById('historyList').innerHTML = '<div class="empty-history">❌ Ошибка загрузки</div>';
+            }
+        }
+
+        // Фильтрация и отображение
+        async function displayHistoryWithFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const ratingFilter = document.getElementById('ratingFilter').value;
+            
+            let filtered = [...allApplications];
+            
+            // Поиск
+            if (searchTerm) {
+                filtered = filtered.filter(app => 
+                    app.transport_name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Фильтр по статусу
+            if (statusFilter) {
+                filtered = filtered.filter(app => app.status === statusFilter);
+            }
+            
+            // Фильтр по оценке
+            if (ratingFilter === 'rated') {
+                const ratedApps = [];
+                for (const app of filtered) {
+                    const rating = await loadRating(app.id);
+                    if (rating) ratedApps.push(app);
+                }
+                filtered = ratedApps;
+            } else if (ratingFilter === 'not_rated') {
+                const notRatedApps = [];
+                for (const app of filtered) {
+                    const rating = await loadRating(app.id);
+                    if (!rating) notRatedApps.push(app);
+                }
+                filtered = notRatedApps;
+            } else if (ratingFilter && !isNaN(ratingFilter)) {
+                const ratedByStars = [];
+                for (const app of filtered) {
+                    const rating = await loadRating(app.id);
+                    if (rating && rating.rating === parseInt(ratingFilter)) {
+                        ratedByStars.push(app);
+                    }
+                }
+                filtered = ratedByStars;
+            }
+            
+            // Пагинация
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const historyToShow = filtered.slice(startIndex, endIndex);
+            
+            // Отображение
+            const container = document.getElementById('historyList');
+            
+            if (historyToShow.length === 0) {
+                container.innerHTML = '<div class="empty-history">📭 История заявок пуста</div>';
+                document.getElementById('pagination').style.display = 'none';
+                document.getElementById('paginationInfo').innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            for (const app of historyToShow) {
+                const statusClass = getStatusClass(app.status);
+                const statusIcon = getStatusIcon(app.status);
+                const startTime = new Date(app.start_time).toLocaleString('ru-RU');
+                const createdTime = new Date(app.created_at).toLocaleString('ru-RU');
+                const rating = await loadRating(app.id);
+                
+                html += `
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="transport-name">🚌 ${app.transport_name}</span>
+                            <span class="status ${statusClass}">${statusIcon} ${app.status}</span>
+                        </div>
+                        <div class="history-details">
+                            <p><strong>📅 Дата и время начала:</strong> ${startTime}</p>
+                            <p><strong>📝 Дата создания заявки:</strong> ${createdTime}</p>
+                            <p><strong>💳 Способ оплаты:</strong> ${app.methods_of_payment || 'Не указан'}</p>
+                            <p><strong>🆔 Номер заявки:</strong> #${app.id}</p>
+                        </div>
+                `;
+                
+                // Блок оценки (только для завершенных заявок)
+                if (app.status === 'Завершена') {
+                    html += `
+                        <div class="rating-section" id="rating-${app.id}">
+                            <strong>Оцените поездку:</strong>
+                            <div class="stars" id="stars-${app.id}">
+                    `;
+                    
+                    for (let i = 1; i <= 5; i++) {
+                        const active = rating && rating.rating >= i ? 'active' : '';
+                        html += `<span class="star ${active}" data-rating="${i}" onclick="setRating(${app.id}, ${i})">★</span>`;
+                    }
+                    
+                    html += `
+                            </div>
+                            <textarea id="review-${app.id}" class="review-text" rows="3" placeholder="Ваш отзыв о поездке...">${rating ? (rating.review || '') : ''}</textarea>
+                            <button class="rating-btn" onclick="submitRating(${app.id})">Сохранить оценку</button>
+                    `;
+                    
+                    if (rating && rating.rating) {
+                        html += `<span class="current-rating">⭐ ${rating.rating}/5</span>`;
+                    }
+                    
+                    html += `</div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            container.innerHTML = html;
+            
+            // Пагинация
+            if (totalPages > 1) {
+                renderPagination(totalPages);
+                document.getElementById('paginationInfo').innerHTML = `
+                    Показано ${startIndex + 1}-${Math.min(endIndex, filtered.length)} из ${filtered.length} заявок
+                    <select id="perPageSelect" onchange="changeItemsPerPage()" style="margin-left: 15px; padding: 5px;">
+                        <option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10 на странице</option>
+                        <option value="20" ${itemsPerPage === 20 ? 'selected' : ''}>20 на странице</option>
+                        <option value="50" ${itemsPerPage === 50 ? 'selected' : ''}>50 на странице</option>
+                    </select>
+                `;
+            } else {
+                document.getElementById('pagination').style.display = 'none';
+                document.getElementById('paginationInfo').innerHTML = '';
+            }
+        }
+        
+        // Установка рейтинга
+        window.setRating = function(applicationId, rating) {
+            const stars = document.querySelectorAll(`#stars-${applicationId} .star`);
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            window.tempRating = rating;
+        };
+        
+        // Отправка оценки
+        window.submitRating = async function(applicationId) {
+            const stars = document.querySelectorAll(`#stars-${applicationId} .star`);
+            let rating = 0;
+            stars.forEach((star, index) => {
+                if (star.classList.contains('active')) rating = index + 1;
+            });
+            const review = document.getElementById(`review-${applicationId}`).value;
+            
+            if (rating === 0) {
+                alert('Пожалуйста, поставьте оценку');
+                return;
+            }
+            
+            await saveRating(applicationId, rating, review);
+            await displayHistoryWithFilters();
+        };
+        
+        // Рендер пагинации
+        function renderPagination(totalPages) {
+            const paginationDiv = document.getElementById('pagination');
+            paginationDiv.style.display = 'flex';
+            
+            let buttons = '';
+            buttons += `<button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>⏮ Первая</button>`;
+            buttons += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>◀ Назад</button>`;
+            
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (startPage > 1) buttons += `<button onclick="goToPage(1)">1</button>`;
+            if (startPage > 2) buttons += `<span>...</span>`;
+            
+            for (let i = startPage; i <= endPage; i++) {
+                buttons += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+            }
+            
+            if (endPage < totalPages - 1) buttons += `<span>...</span>`;
+            if (endPage < totalPages) buttons += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            
+            buttons += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Вперед ▶</button>`;
+            buttons += `<button onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>Последняя ⏭</button>`;
+            
+            paginationDiv.innerHTML = buttons;
+        }
+        
+        function goToPage(page) {
+            const totalPages = Math.ceil(allApplications.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            displayHistoryWithFilters();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function changeItemsPerPage() {
+            const select = document.getElementById('perPageSelect');
+            itemsPerPage = parseInt(select.value);
+            currentPage = 1;
+            displayHistoryWithFilters();
+        }
+        
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+        
+        // События фильтрации
+        document.getElementById('searchInput').addEventListener('input', () => {
+            currentPage = 1;
+            displayHistoryWithFilters();
+        });
+        document.getElementById('statusFilter').addEventListener('change', () => {
+            currentPage = 1;
+            displayHistoryWithFilters();
+        });
+        document.getElementById('ratingFilter').addEventListener('change', () => {
+            currentPage = 1;
+            displayHistoryWithFilters();
+        });
+        
+        // Инициализация
+        loadApplications();
+    </script>
+</body>
+</html>

@@ -144,12 +144,62 @@ app.get('/api/applications/:userId', async (req, res) => {
   }
 });
 
+// Добавление/обновление оценки заявки
+app.post('/api/applications/:id/rating', async (req, res) => {
+  const { id } = req.params;
+  const { rating, review } = req.body;
+  
+  try {
+    // Создаем таблицу для отзывов если её нет
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS application_reviews (
+        id SERIAL PRIMARY KEY,
+        application_id INTEGER REFERENCES applications(id) UNIQUE,
+        rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+        review TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Вставляем или обновляем отзыв
+    const result = await db.query(
+      `INSERT INTO application_reviews (application_id, rating, review) 
+       VALUES ($1, $2, $3)
+       ON CONFLICT (application_id) 
+       DO UPDATE SET rating = $2, review = $3
+       RETURNING *`,
+      [id, rating, review]
+    );
+    
+    res.json({ message: 'Оценка сохранена', review: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка сохранения оценки' });
+  }
+});
+
+// Получение оценки заявки
+app.get('/api/applications/:id/rating', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const result = await db.query(
+      `SELECT * FROM application_reviews WHERE application_id = $1`,
+      [id]
+    );
+    
+    res.json(result.rows[0] || null);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка получения оценки' });
+  }
+});
+
 // Обновление статуса заявки (для администратора)
 app.put('/api/admin/applications/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   
-  // Проверка допустимых статусов
   const validStatuses = ['Ожидает подтверждения', 'Выполняется', 'Завершена'];
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ error: 'Недопустимый статус' });
@@ -198,6 +248,10 @@ app.get('/profile', (req, res) => {
 
 app.get('/applications', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'applications.html'));
+});
+
+app.get('/history', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'history.html'));
 });
 
 app.get('/admin', (req, res) => {
