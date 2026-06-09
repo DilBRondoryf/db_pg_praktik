@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .stat-card.waiting .number { color: #ffc107; }
+        .stat-card.progress .number { color: #17a2b8; }
+        .stat-card.completed .number { color: #28a745; }
+        .stat-card.total .number { color: #667eea; }
+
+        .applications-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .applications-table h2 {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #555;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-waiting {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .status-progress {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .status-completed {
+            background: #28a745;
+            color: white;
+        }
+
+        select {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .update-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .update-btn:hover {
+            background: #5a67d8;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .filter-bar {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar input, .filter-bar select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .refresh-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .user-info {
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-login {
+            font-size: 12px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            th, td {
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>👨‍💼 Панель администратора</h1>
+                <p>Управление заявками на транспорт</p>
+            </div>
+            <div class="admin-info">
+                <span>🔐 Admin26</span>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="successMsg" class="success-message"></div>
+        <div id="errorMsg" class="error-message"></div>
+
+        <div class="stats">
+            <div class="stat-card total">
+                <h3>📊 Всего заявок</h3>
+                <div class="number" id="totalCount">0</div>
+            </div>
+            <div class="stat-card waiting">
+                <h3>⏳ Ожидает подтверждения</h3>
+                <div class="number" id="waitingCount">0</div>
+            </div>
+            <div class="stat-card progress">
+                <h3>🚀 Выполняется</h3>
+                <div class="number" id="progressCount">0</div>
+            </div>
+            <div class="stat-card completed">
+                <h3>✅ Завершена</h3>
+                <div class="number" id="completedCount">0</div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, логину, транспорту..." style="flex: 1;">
+            <select id="statusFilter">
+                <option value="">Все статусы</option>
+                <option value="Ожидает подтверждения">⏳ Ожидает подтверждения</option>
+                <option value="Выполняется">🚀 Выполняется</option>
+                <option value="Завершена">✅ Завершена</option>
+            </select>
+            <button class="refresh-btn" onclick="loadApplications()">🔄 Обновить</button>
+        </div>
+
+        <div class="applications-table">
+            <h2>📋 Управление заявками</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Транспорт</th>
+                            <th>Дата/время начала</th>
+                            <th>Способ оплаты</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationsBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center;">Загрузка...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allApplications = [];
+
+        // Проверка авторизации администратора
+        const admin = localStorage.getItem('admin');
+        if (!admin) {
+            window.location.href = '/admin/login';
+        }
+
+        // Загрузка всех заявок
+        async function loadApplications() {
+            try {
+                const response = await fetch('/api/admin/applications');
+                allApplications = await response.json();
+                
+                updateStats();
+                filterAndDisplay();
+            } catch (error) {
+                showError('Ошибка загрузки заявок');
+            }
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            const total = allApplications.length;
+            const waitingCount = allApplications.filter(a => a.status === 'Ожидает подтверждения').length;
+            const progressCount = allApplications.filter(a => a.status === 'Выполняется').length;
+            const completedCount = allApplications.filter(a => a.status === 'Завершена').length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('waitingCount').textContent = waitingCount;
+            document.getElementById('progressCount').textContent = progressCount;
+            document.getElementById('completedCount').textContent = completedCount;
+        }
+
+        // Фильтрация и отображение
+        function filterAndDisplay() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filtered = allApplications;
+            
+            if (searchTerm) {
+                filtered = filtered.filter(app => 
+                    app.user_name.toLowerCase().includes(searchTerm) ||
+                    app.user_login.toLowerCase().includes(searchTerm) ||
+                    app.transport_name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (statusFilter) {
+                filtered = filtered.filter(app => app.status === statusFilter);
+            }
+            
+            displayApplications(filtered);
+        }
+
+        // Отображение заявок
+        function displayApplications(applications) {
+            const tbody = document.getElementById('applicationsBody');
+            
+            if (applications.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">📭 Нет заявок</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = applications.map(app => {
+                const statusClass = getStatusClass(app.status);
+                const statusIcon = getStatusIcon(app.status);
+                const startTime = new Date(app.start_time).toLocaleString('ru-RU', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <tr>
+                        <td><strong>#${app.id}</strong></td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-name">${app.user_name}</div>
+                                <div class="user-login">@${app.user_login}</div>
+                            </div>
+                        </td>
+                        <td>${app.transport_name}</td>
+                        <td>${startTime}</td>
+                        <td>${app.methods_of_payment || '—'}</td>
+                        <td>
+                            <span class="status ${statusClass}">${statusIcon} ${app.status}</span>
+                        </td>
+                        <td>
+                            <select id="status-${app.id}" onchange="updateStatus(${app.id})">
+                                <option value="Ожидает подтверждения" ${app.status === 'Ожидает подтверждения' ? 'selected' : ''}>⏳ Ожидает подтверждения</option>
+                                <option value="Выполняется" ${app.status === 'Выполняется' ? 'selected' : ''}>🚀 Выполняется</option>
+                                <option value="Завершена" ${app.status === 'Завершена' ? 'selected' : ''}>✅ Завершена</option>
+                            </select>
+                            <button class="update-btn" onclick="updateStatus(${app.id})">Применить</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Получение CSS класса для статуса
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Ожидает подтверждения': return 'status-waiting';
+                case 'Выполняется': return 'status-progress';
+                case 'Завершена': return 'status-completed';
+                default: return 'status-waiting';
+            }
+        }
+
+        // Получение иконки для статуса
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'Ожидает подтверждения': return '⏳';
+                case 'Выполняется': return '🚀';
+                case 'Завершена': return '✅';
+                default: return '📋';
+            }
+        }
+
+        // Обновление статуса заявки
+        async function updateStatus(applicationId) {
+            const select = document.getElementById(`status-${applicationId}`);
+            const newStatus = select.value;
+            
+            try {
+                const response = await fetch(`/api/admin/applications/${applicationId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess(`✅ Статус заявки #${applicationId} изменен на "${newStatus}"`);
+                    loadApplications(); // Перезагружаем список
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                showError('Ошибка обновления статуса');
+            }
+        }
+
+        function showSuccess(message) {
+            const msgDiv = document.getElementById('successMsg');
+            msgDiv.textContent = message;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            const msgDiv = document.getElementById('errorMsg');
+            msgDiv.textContent = message;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('admin');
+            window.location.href = '/admin/login';
+        }
+
+        // События фильтрации
+        document.getElementById('searchInput').addEventListener('input', filterAndDisplay);
+        document.getElementById('statusFilter').addEventListener('change', filterAndDisplay);
+        
+        // Автообновление каждые 30 секунд
+        setInterval(() => {
+            loadApplications();
+        }, 30000);
+        
+        // Инициализация
+        loadApplications();
+    </script>
+</body>
+</html>
